@@ -1,4 +1,5 @@
 # Deployment Guide
+
 ## BuzzTech — Check-In / Check-Out Attendance Platform
 
 This guide walks through **local setup → database → backend → frontend → cloud deployment**,
@@ -8,13 +9,13 @@ with every required parameter listed. Follow it in order.
 
 ## 0. What You Need Before Starting
 
-| Requirement | Notes |
-|---|---|
-| Node.js 18+ and npm | Check with `node --version` |
-| A PostgreSQL database | Easiest: a free [Supabase](https://supabase.com) project. Also works with Neon, Railway, or a local Postgres install. |
-| A GitHub account | For deploying to Vercel/Render |
-| (Optional) Vercel account | For hosting the frontend |
-| (Optional) Render account | For hosting the backend |
+| Requirement               | Notes                                                                                                                 |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| Node.js 18+ and npm       | Check with `node --version`                                                                                           |
+| A PostgreSQL database     | Easiest: a free [Supabase](https://supabase.com) project. Also works with Neon, Railway, or a local Postgres install. |
+| A GitHub account          | For deploying to Vercel/Render                                                                                        |
+| (Optional) Vercel account | For hosting the frontend                                                                                              |
+| (Optional) Render account | For hosting the backend                                                                                               |
 
 ---
 
@@ -70,35 +71,40 @@ npm install
 
 Open `.env` and fill in these parameters:
 
-| Variable | Required | Example / Notes |
-|---|---|---|
-| `PORT` | No | Defaults to `5000` |
-| `NODE_ENV` | No | `development` locally, `production` when deployed |
-| `DATABASE_URL` | **Yes** | From Step 2 |
-| `DB_SSL` | **Yes** if using Supabase/Render/Railway | `true` for hosted Postgres, `false` for plain local Postgres |
-| `JWT_SECRET` | **Yes** | Any long random string. Generate one: `openssl rand -hex 32` |
-| `JWT_EXPIRES_IN` | No | Defaults to `12h` |
-| `FRONTEND_ORIGIN` | **Yes** | The URL your frontend runs on, e.g. `http://localhost:5173`. Comma-separate if you need more than one (local + deployed). |
-| `SEED_ADMIN_NAME` | Only for seeding | Your name, e.g. `Joint Coordinator` |
-| `SEED_ADMIN_EMAIL` | Only for seeding | The email you'll log in with |
-| `SEED_ADMIN_PASSWORD` | Only for seeding | A real password — change the placeholder |
+| Variable              | Required                                 | Example / Notes                                                                                                           |
+| --------------------- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `PORT`                | No                                       | Defaults to `5000`                                                                                                        |
+| `NODE_ENV`            | No                                       | `development` locally, `production` when deployed                                                                         |
+| `DATABASE_URL`        | **Yes**                                  | From Step 2                                                                                                               |
+| `DB_SSL`              | **Yes** if using Supabase/Render/Railway | `true` for hosted Postgres, `false` for plain local Postgres                                                              |
+| `JWT_SECRET`          | **Yes**                                  | Any long random string. Generate one: `openssl rand -hex 32`                                                              |
+| `JWT_EXPIRES_IN`      | No                                       | Defaults to `12h`                                                                                                         |
+| `FRONTEND_ORIGIN`     | **Yes**                                  | The URL your frontend runs on, e.g. `http://localhost:5173`. Comma-separate if you need more than one (local + deployed). |
+| `SEED_ADMIN_NAME`     | Only for seeding                         | Your name, e.g. `Joint Coordinator`                                                                                       |
+| `SEED_ADMIN_EMAIL`    | Only for seeding                         | The email you'll log in with                                                                                              |
+| `SEED_ADMIN_PASSWORD` | Only for seeding                         | A real password — change the placeholder                                                                                  |
 
 Create your first admin login:
+
 ```bash
 npm run seed-admin
 ```
+
 You should see `✅ Admin created: <your email>`. This is the account you'll use to log
 into the app. You can seed more admins later by rerunning with different `SEED_ADMIN_*`
 values, or by inserting rows directly into the `admins` table (password must be a
 bcrypt hash — the seed script handles hashing for you).
 
 Start the API:
+
 ```bash
 npm run dev
 ```
+
 You should see: `✅ BuzzTech API running on http://localhost:5000`
 
 Sanity check it's alive:
+
 ```bash
 curl http://localhost:5000/api/health
 ```
@@ -117,15 +123,18 @@ npm install
 
 Open `.env` and set:
 
-| Variable | Required | Example |
-|---|---|---|
-| `VITE_API_URL` | **Yes** | `http://localhost:5000/api` locally; your deployed backend URL + `/api` in production |
+| Variable       | Required | Example                                                                               |
+| -------------- | -------- | ------------------------------------------------------------------------------------- |
+| `VITE_API_URL` | **Yes**  | `http://localhost:5000/api` locally; your deployed backend URL + `/api` in production |
 
 Start the app:
+
 ```bash
 npm run dev
 ```
+
 Open `http://localhost:5173`, log in with the admin credentials you seeded, and:
+
 1. Go to **Onboard** → add a few management members and a few participants.
 2. Go to **Check-In / Out** → check someone in, then check them out.
 3. Go to **Reports** → confirm the row appears with Name, Class, Position, Date, Check-In, Check-Out, and try **Export CSV**.
@@ -201,6 +210,7 @@ If all three work, your local setup is fully functional.
 ## 9. Full Parameter Reference (Quick Copy)
 
 **Backend `.env`:**
+
 ```
 PORT=5000
 NODE_ENV=production
@@ -215,6 +225,9 @@ SEED_ADMIN_PASSWORD=<a real password>
 ```
 
 **Frontend `.env`:**
+
 ```
 VITE_API_URL=https://your-backend.onrender.com/api
 ```
+
+//testing bla bla
