@@ -11,7 +11,6 @@ export default function CheckInOut() {
   const [actionError, setActionError] = useState("");
 
   const load = useCallback(async () => {
-    setLoading(true);
     try {
       const params = {};
       if (type) params.type = type;
@@ -28,6 +27,11 @@ export default function CheckInOut() {
   useEffect(() => {
     const t = setTimeout(load, 250); // debounce search
     return () => clearTimeout(t);
+  }, [load]);
+
+  useEffect(() => {
+    const interval = setInterval(load, 10000);
+    return () => clearInterval(interval);
   }, [load]);
 
   async function handleCheckIn(person, force = false) {
