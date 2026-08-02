@@ -1,19 +1,13 @@
 import { Router } from "express";
 import { pool } from "../db.js";
 import { requireAuth } from "../middleware/auth.middleware.js";
+import { calculateAttendanceSlots } from "../utils/slotCalculator.js";
 
 const router = Router();
 router.use(requireAuth);
 
 function todayDate() {
   return new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-}
-
-async function getSlotForCurrentTime() {
-  const slotRes = await pool.query(
-    "SELECT slot_label FROM attendance_slots WHERE (now()::time) >= start_time AND (now()::time) <= end_time LIMIT 1"
-  );
-  return slotRes.rows[0]?.slot_label || null;
 }
 
 async function getPersonType(person_id) {
@@ -53,7 +47,16 @@ router.get("/today", async (req, res) => {
     LIMIT 500
   `;
   const result = await pool.query(query, values);
-  res.json({ date, people: result.rows });
+
+  const peopleWithSlots = result.rows.map((p) => {
+    if (p.person_type === "MANAGEMENT" && p.check_in_time) {
+      const computedSlot = calculateAttendanceSlots(p.check_in_time, p.check_out_time, p.person_type);
+      return { ...p, slot: computedSlot || p.slot };
+    }
+    return p;
+  });
+
+  res.json({ date, people: peopleWithSlots });
 });
 
 // POST /api/attendance/check-in  { person_id }
@@ -76,7 +79,8 @@ router.post("/check-in", async (req, res) => {
   }
 
   const personType = await getPersonType(person_id);
-  const slotLabel = personType === "MANAGEMENT" ? await getSlotForCurrentTime() : null;
+  const now = new Date();
+  const slotLabel = calculateAttendanceSlots(now, existing.rows[0]?.check_out_time, personType);
 
   let result;
   if (existing.rows.length > 0) {
@@ -118,11 +122,12 @@ router.post("/check-out", async (req, res) => {
   }
 
   const personType = await getPersonType(person_id);
+  const now = new Date();
 
   let result;
   if (existing.rows.length === 0) {
     // Forced check-out without a prior check-in
-    const slotLabel = personType === "MANAGEMENT" ? await getSlotForCurrentTime() : null;
+    const slotLabel = calculateAttendanceSlots(now, now, personType);
     result = await pool.query(
       `INSERT INTO attendance_records
         (person_id, date, check_out_time, status, marked_by_admin_id, is_manual_correction, slot)
@@ -131,11 +136,8 @@ router.post("/check-out", async (req, res) => {
       [person_id, date, req.admin.admin_id, slotLabel]
     );
   } else {
-    // If existing record already has a slot, keep it. Otherwise if MANAGEMENT, try lookup for current check-out time.
-    let slotLabel = existing.rows[0].slot;
-    if (!slotLabel && personType === "MANAGEMENT") {
-      slotLabel = await getSlotForCurrentTime();
-    }
+    const checkInTime = existing.rows[0].check_in_time || now;
+    const slotLabel = calculateAttendanceSlots(checkInTime, now, personType);
     result = await pool.query(
       `UPDATE attendance_records
        SET check_out_time = now(), status = 'CHECKED_OUT', marked_by_admin_id = $1, slot = $4
@@ -153,6 +155,22 @@ router.patch("/:record_id/correct", async (req, res) => {
   const { record_id } = req.params;
   const { check_in_time, check_out_time, notes } = req.body;
 
+  const existingRecordRes = await pool.query(
+    `SELECT a.*, p.person_type 
+     FROM attendance_records a 
+     JOIN people p ON p.person_id = a.person_id 
+     WHERE a.record_id = $1`,
+    [record_id]
+  );
+  if (existingRecordRes.rows.length === 0) {
+    return res.status(404).json({ error: "Attendance record not found." });
+  }
+
+  const existingRec = existingRecordRes.rows[0];
+  const finalCheckIn = check_in_time || existingRec.check_in_time;
+  const finalCheckOut = check_out_time || existingRec.check_out_time;
+  const slotLabel = calculateAttendanceSlots(finalCheckIn, finalCheckOut, existingRec.person_type);
+
   const updates = ["is_manual_correction = TRUE", "status = 'EDITED'", "marked_by_admin_id = $1"];
   const values = [req.admin.admin_id];
 
@@ -169,16 +187,17 @@ router.patch("/:record_id/correct", async (req, res) => {
     updates.push(`notes = $${values.length}`);
   }
 
+  values.push(slotLabel);
+  updates.push(`slot = $${values.length}`);
+
   values.push(record_id);
   const result = await pool.query(
     `UPDATE attendance_records SET ${updates.join(", ")} WHERE record_id = $${values.length} RETURNING *`,
     values
   );
 
-  if (result.rows.length === 0) {
-    return res.status(404).json({ error: "Attendance record not found." });
-  }
   res.json({ record: result.rows[0] });
 });
 
 export default router;
+

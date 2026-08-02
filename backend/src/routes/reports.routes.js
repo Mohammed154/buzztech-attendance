@@ -31,8 +31,8 @@ function buildFilters(query) {
     conditions.push(`date <= $${values.length}`);
   }
   if (slot) {
-    values.push(slot);
-    conditions.push(`slot = $${values.length}`);
+    values.push(`%${slot}%`);
+    conditions.push(`slot LIKE $${values.length}`);
   }
 
   return { where: conditions.length ? `WHERE ${conditions.join(" AND ")}` : "", values };
@@ -50,7 +50,7 @@ router.get("/", async (req, res) => {
   if (person_id) { filterValues.push(person_id); filterConditions.push(`p.person_id = $${filterValues.length}`); }
   if (from_date) { filterValues.push(from_date); filterConditions.push(`a.date >= $${filterValues.length}`); }
   if (to_date) { filterValues.push(to_date); filterConditions.push(`a.date <= $${filterValues.length}`); }
-  if (slot) { filterValues.push(slot); filterConditions.push(`a.slot = $${filterValues.length}`); }
+  if (slot) { filterValues.push(`%${slot}%`); filterConditions.push(`a.slot LIKE $${filterValues.length}`); }
 
   const whereClause = filterConditions.length ? `WHERE ${filterConditions.join(" AND ")}` : "";
 
@@ -79,7 +79,7 @@ router.get("/export.csv", async (req, res) => {
   if (person_id) { filterValues.push(person_id); filterConditions.push(`p.person_id = $${filterValues.length}`); }
   if (from_date) { filterValues.push(from_date); filterConditions.push(`a.date >= $${filterValues.length}`); }
   if (to_date) { filterValues.push(to_date); filterConditions.push(`a.date <= $${filterValues.length}`); }
-  if (slot) { filterValues.push(slot); filterConditions.push(`a.slot = $${filterValues.length}`); }
+  if (slot) { filterValues.push(`%${slot}%`); filterConditions.push(`a.slot LIKE $${filterValues.length}`); }
 
   const whereClause = filterConditions.length ? `WHERE ${filterConditions.join(" AND ")}` : "";
 
