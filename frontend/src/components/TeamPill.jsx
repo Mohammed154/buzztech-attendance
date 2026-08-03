@@ -4,6 +4,8 @@ const TEAM_COLORS = {
   WEBSITE: "bg-team-website/10 text-team-website",
   PROMOTION: "bg-team-promotion/10 text-team-promotion",
   SOCIAL_MEDIA_MARKETING: "bg-team-social/10 text-team-social",
+  FINANCE: "bg-emerald-500/10 text-emerald-700",
+  EVENT_MANAGEMENT: "bg-purple-500/10 text-purple-700",
 };
 
 export default function TeamPill({ team, personType }) {

@@ -8,6 +8,18 @@ const MGMT_SUBTEAMS = [
   "WEBSITE",
   "PROMOTION",
   "SOCIAL_MEDIA_MARKETING",
+  "FINANCE",
+  "EVENT_MANAGEMENT",
+];
+
+const PRESET_POSITIONS = [
+  "Finance",
+  "Event Manager",
+  "Lead",
+  "Co-Lead",
+  "Volunteer",
+  "Team Lead",
+  "Member",
 ];
 
 const emptyForm = {
@@ -172,12 +184,37 @@ export default function Onboard() {
           <label className="label">Position / Role</label>
           <input
             className="input"
+            list="position-suggestions"
             placeholder={
-              isManagement ? "e.g. Lead, Volunteer" : "e.g. Team Lead, Member"
+              isManagement
+                ? "e.g. Finance, Event Manager, Lead, Volunteer"
+                : "e.g. Team Lead, Member"
             }
             value={form.position}
             onChange={(e) => update("position", e.target.value)}
           />
+          <datalist id="position-suggestions">
+            {PRESET_POSITIONS.map((pos) => (
+              <option key={pos} value={pos} />
+            ))}
+          </datalist>
+
+          <div className="flex flex-wrap gap-1.5 mt-2">
+            {PRESET_POSITIONS.map((pos) => (
+              <button
+                key={pos}
+                type="button"
+                onClick={() => update("position", pos)}
+                className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
+                  form.position === pos
+                    ? "bg-brand text-white border-brand font-medium"
+                    : "border-black/10 text-ink/60 hover:bg-black/5"
+                }`}
+              >
+                + {pos}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div>
