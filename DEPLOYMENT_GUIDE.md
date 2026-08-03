@@ -34,12 +34,17 @@ with every required parameter listed. Follow it in order.
 
 1. Go to [supabase.com](https://supabase.com) → **New Project**.
 2. Choose a name (e.g. `buzztech-attendance`), a strong database password (save it), and a region close to you.
-3. Once the project is ready, go to **Project Settings → Database → Connection string → URI**.
-   Copy it — it looks like:
-   ```
-   postgresql://postgres:[YOUR-PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres
-   ```
-   This is your `DATABASE_URL`.
+3. Once the project is ready, go to **Project Settings → Database → Connection string**.
+   - **For Render / IPv4 hosts (Fixes `ENETUNREACH` error):** Use the **Connection Pooler** URI (Session mode, port `6543` or pooler hostname).
+     It looks like:
+     ```
+     postgresql://postgres.[PROJECT-REF]:[YOUR-PASSWORD]@aws-0-[REGION].pooler.supabase.com:6543/postgres
+     ```
+   - **For Direct connections (IPv6 network required):**
+     ```
+     postgresql://postgres:[YOUR-PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres
+     ```
+   *(Note: Render free tier does not support IPv6 outbound. If using Render, you MUST use the Supabase Connection Pooler hostname above).*
 4. Go to the **SQL Editor** in Supabase, paste the entire contents of
    `backend/sql/schema.sql`, and run it. This creates the `admins`, `people`, and
    `attendance_records` tables plus the reporting view.

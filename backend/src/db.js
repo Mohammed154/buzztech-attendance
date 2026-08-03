@@ -1,5 +1,9 @@
 import pg from "pg";
 import dotenv from "dotenv";
+import dns from "node:dns";
+
+// Force IPv4 DNS lookup first for environments (like Render) that do not support IPv6 outbound
+dns.setDefaultResultOrder("ipv4first");
 
 dotenv.config();
 
